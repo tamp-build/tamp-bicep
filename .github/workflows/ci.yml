@@ -31,13 +31,13 @@ jobs:
           fetch-depth: 1
 
       # The standalone Bicep CLI ships as a single binary. We install
-      # via the official release assets per OS — quicker than `az bicep
-      # install` and doesn't depend on having az itself.
+      # via the official release assets per OS, pinned to a specific
+      # version so CI is reproducible — bump deliberately in PRs.
       - name: Install Bicep CLI (Linux)
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          curl -Lo /tmp/bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+          curl -Lo /tmp/bicep https://github.com/Azure/bicep/releases/download/v0.43.8/bicep-linux-x64
           chmod +x /tmp/bicep
           sudo mv /tmp/bicep /usr/local/bin/bicep
           bicep --version
@@ -46,7 +46,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          curl -Lo /tmp/bicep https://github.com/Azure/bicep/releases/latest/download/bicep-osx-arm64
+          curl -Lo /tmp/bicep https://github.com/Azure/bicep/releases/download/v0.43.8/bicep-osx-arm64
           chmod +x /tmp/bicep
           sudo mv /tmp/bicep /usr/local/bin/bicep
           bicep --version
@@ -55,7 +55,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://github.com/Azure/bicep/releases/latest/download/bicep-win-x64.exe" -OutFile "$env:RUNNER_TEMP\bicep.exe"
+          Invoke-WebRequest -Uri "https://github.com/Azure/bicep/releases/download/v0.43.8/bicep-win-x64.exe" -OutFile "$env:RUNNER_TEMP\bicep.exe"
           Move-Item -Force "$env:RUNNER_TEMP\bicep.exe" "C:\Windows\System32\bicep.exe"
           bicep --version
 
