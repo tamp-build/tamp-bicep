@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build & test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      DOTNET_NOLOGO: '1'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
+      TampCoreMode: package
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # The standalone Bicep CLI ships as a single binary. We install
+      # via the official release assets per OS — quicker than `az bicep
+      # install` and doesn't depend on having az itself.
+      - name: Install Bicep CLI (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          curl -Lo /tmp/bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+          chmod +x /tmp/bicep
+          sudo mv /tmp/bicep /usr/local/bin/bicep
+          bicep --version
+
+      - name: Install Bicep CLI (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          curl -Lo /tmp/bicep https://github.com/Azure/bicep/releases/latest/download/bicep-osx-arm64
+          chmod +x /tmp/bicep
+          sudo mv /tmp/bicep /usr/local/bin/bicep
+          bicep --version
+
+      - name: Install Bicep CLI (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/Azure/bicep/releases/latest/download/bicep-win-x64.exe" -OutFile "$env:RUNNER_TEMP\bicep.exe"
+          Move-Item -Force "$env:RUNNER_TEMP\bicep.exe" "C:\Windows\System32\bicep.exe"
+          bicep --version
+
+      # az is preinstalled on all GitHub-hosted runner images and is
+      # required for the `Deploy.Group` integration tests (which only
+      # do --help shape probes; no real deployments).
+      - name: Verify az CLI
+        shell: bash
+        run: az version
+
+      - name: Install supported .NET SDKs
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Verify SDKs
+        shell: bash
+        run: |
+          dotnet --info
+          dotnet --list-sdks
+          dotnet --list-runtimes
+
+      - name: NuGet cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore Tamp.Bicep.slnx
+
+      - name: Build
+        run: dotnet build Tamp.Bicep.slnx --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test Tamp.Bicep.slnx --no-build --configuration Release --logger "trx;LogFileName=test-results.trx" --results-directory ./TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: ./TestResults/**/*.trx
+          if-no-files-found: warn
