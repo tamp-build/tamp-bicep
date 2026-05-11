@@ -85,5 +85,63 @@ public static class Bicep
             configure(s);
             return s.ToCommandPlan(az);
         }
+
+        // ---- Object-init overloads (TAM-161 satellite fanout) ----
+        // Tool-bound parallel to the configurer-only shape above; both produce
+        // identical CommandPlans. Fluent stays canonical in docs; object-init
+        // available for consumers who prefer the C# initializer shape.
+        //
+        //     Bicep.Deploy.Group(az, new() { ResourceGroup = "rg", TemplateFile = "main.bicep" });
+        //
+        // is equivalent to:
+        //
+        //     Bicep.Deploy.Group(az, s => s.SetResourceGroup("rg").SetTemplateFile("main.bicep"));
+
+        public static CommandPlan Group(Tool az, BicepDeployGroupSettings settings)
+        {
+            if (az is null) throw new ArgumentNullException(nameof(az));
+            if (settings is null) throw new ArgumentNullException(nameof(settings));
+            return settings.ToCommandPlan(az);
+        }
+    }
+
+    // ---- Object-init overloads (TAM-161 satellite fanout) ----
+    // Tool-bound parallel to the configurer-only shapes above; both produce
+    // identical CommandPlans. Fluent stays canonical in docs and `tamp init`
+    // templates; object-init available for consumers who prefer the C#
+    // initializer shape.
+    //
+    //     Bicep.Build(bicep, new() { File = "main.bicep", OutFile = "main.json" });
+    //
+    // is equivalent to:
+    //
+    //     Bicep.Build(bicep, s => s.SetFile("main.bicep").SetOutFile("main.json"));
+
+    public static CommandPlan Build(Tool bicep, BicepBuildSettings settings)
+    {
+        if (bicep is null) throw new ArgumentNullException(nameof(bicep));
+        if (settings is null) throw new ArgumentNullException(nameof(settings));
+        return settings.ToCommandPlan(bicep);
+    }
+
+    public static CommandPlan Lint(Tool bicep, BicepLintSettings settings)
+    {
+        if (bicep is null) throw new ArgumentNullException(nameof(bicep));
+        if (settings is null) throw new ArgumentNullException(nameof(settings));
+        return settings.ToCommandPlan(bicep);
+    }
+
+    public static CommandPlan Format(Tool bicep, BicepFormatSettings settings)
+    {
+        if (bicep is null) throw new ArgumentNullException(nameof(bicep));
+        if (settings is null) throw new ArgumentNullException(nameof(settings));
+        return settings.ToCommandPlan(bicep);
+    }
+
+    public static CommandPlan Version(Tool bicep, BicepVersionSettings settings)
+    {
+        if (bicep is null) throw new ArgumentNullException(nameof(bicep));
+        if (settings is null) throw new ArgumentNullException(nameof(settings));
+        return settings.ToCommandPlan(bicep);
     }
 }

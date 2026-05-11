@@ -310,10 +310,14 @@ public sealed class BicepTests
     [Fact]
     public void Null_Configurer_Throws_For_Required_Verbs()
     {
-        Assert.Throws<ArgumentNullException>(() => Bicep.Build(FakeTool(), null!));
-        Assert.Throws<ArgumentNullException>(() => Bicep.Lint(FakeTool(), null!));
-        Assert.Throws<ArgumentNullException>(() => Bicep.Format(FakeTool(), null!));
-        Assert.Throws<ArgumentNullException>(() => Bicep.Deploy.Group(FakeTool(), null!));
+        // Object-init overloads (TAM-161 fanout) made these calls ambiguous against
+        // a bare `null!`; cast the null to the configurer delegate type to keep this
+        // test scoped to the fluent shape. The object-init null-check is exercised
+        // in ObjectInitTests.
+        Assert.Throws<ArgumentNullException>(() => Bicep.Build(FakeTool(), (Action<BicepBuildSettings>)null!));
+        Assert.Throws<ArgumentNullException>(() => Bicep.Lint(FakeTool(), (Action<BicepLintSettings>)null!));
+        Assert.Throws<ArgumentNullException>(() => Bicep.Format(FakeTool(), (Action<BicepFormatSettings>)null!));
+        Assert.Throws<ArgumentNullException>(() => Bicep.Deploy.Group(FakeTool(), (Action<BicepDeployGroupSettings>)null!));
     }
 
     [Fact]
