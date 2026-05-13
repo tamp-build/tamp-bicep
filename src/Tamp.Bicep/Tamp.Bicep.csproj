@@ -10,7 +10,12 @@
     <PackageId>Tamp.Bicep</PackageId>
     <Description>Tamp wrapper for the Bicep CLI (build/lint/format/version) plus `az deployment group create` via a unified Bicep facade. No V-pin since Bicep is pre-1.0 and the surface is stable across pre-1.0 releases.</Description>
     <IsPackable>true</IsPackable>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="$(TampCorePath)" Condition="'$(TampCoreMode)' == 'project'" />
