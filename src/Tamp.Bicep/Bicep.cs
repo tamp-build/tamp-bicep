@@ -2,8 +2,8 @@ namespace Tamp.Bicep;
 
 /// <summary>
 /// Facade for the Bicep CLI plus ARM deployment via az. Most verbs
-/// (<see cref="Build"/>, <see cref="Lint"/>, <see cref="Format"/>,
-/// <see cref="Version"/>, <see cref="Raw"/>) take a <c>bicep</c>
+/// (<c>Build</c>, <c>Lint</c>, <c>Format</c>,
+/// <c>Version</c>, <c>Raw</c>) take a <c>bicep</c>
 /// <see cref="Tool"/>; <see cref="Deploy"/> verbs take an <c>az</c>
 /// tool because ARM deployment goes through Azure CLI.
 /// </summary>
